@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel, field_validator
 
-from config import MAX_CODE
+from .config import MAX_CODE
 
 
 class Status(str, Enum):

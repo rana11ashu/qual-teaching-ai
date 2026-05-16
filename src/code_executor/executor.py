@@ -7,8 +7,8 @@ import sys
 import tempfile
 from datetime import datetime, timezone
 
-from config import CPU_LIMIT, MAX_FILE_SIZE, MAX_OPEN_FILES, MAX_OUTPUT, MAX_PROCESSES, MEM_LIMIT, TASK_TTL, TIMEOUT
-from models import Status
+from .config import CPU_LIMIT, MAX_FILE_SIZE, MAX_OPEN_FILES, MAX_OUTPUT, MAX_PROCESSES, MEM_LIMIT, TASK_TTL, TIMEOUT
+from .models import Status
 
 logger = logging.getLogger(__name__)
 

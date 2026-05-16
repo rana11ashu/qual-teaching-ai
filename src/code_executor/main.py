@@ -7,9 +7,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from code_check import validate_code
-from executor import CodeExecutor
-from models import ExecuteRequest, Status
+from .code_check import validate_code
+from .executor import CodeExecutor
+from .models import ExecuteRequest, Status
 
 logger = logging.getLogger(__name__)
 
