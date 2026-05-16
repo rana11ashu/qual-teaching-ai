@@ -1,0 +1,9 @@
+TIMEOUT = 100          # seconds (wall-clock)
+CPU_LIMIT = 5          # seconds (CPU time)
+MAX_PROCESSES = 50     # process count
+MAX_FILE_SIZE = 1024 * 1024   # bytes (1 MB)
+MAX_OPEN_FILES = 32    # file descriptors
+MAX_OUTPUT = 512_000   # bytes (512 KB)
+MAX_CODE = 50_000      # bytes (50 KB)
+MEM_LIMIT = 64 * 1024 * 1024  # bytes (64 MB)
+TASK_TTL = 1800                # seconds (30 minutes)

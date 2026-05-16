@@ -1,0 +1,124 @@
+# ============================================================
+# Code Executor API — Manual Test Cases
+# Base URL: http://localhost:8080
+# Run: ./start.sh before executing these
+# ============================================================
+
+
+# ------------------------------------------------------------
+# 1. Basic execution — print output, check task status
+# ------------------------------------------------------------
+
+# Submit code
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "print(\"hello world\")"}'
+
+# Get task status (replace <task_id> with id from above)
+curl -s http://localhost:8080/tasks/<task_id>
+
+
+# ------------------------------------------------------------
+# 2. Real-time streaming — loop that prints over time
+# ------------------------------------------------------------
+
+# Submit a slow loop
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "import time\nfor i in range(30):\n    print(i)\n    time.sleep(1)"}'
+
+# Stream it live (watch lines arrive one by one)
+curl -N http://localhost:8080/tasks/<task_id>/stream
+
+
+# ------------------------------------------------------------
+# 3. Syntax error — should return exit_code=1, status=failed
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "def foo(\n    print(1)"}'
+
+curl -s http://localhost:8080/tasks/<task_id>
+
+
+# ------------------------------------------------------------
+# 4. Blocked import (os) — rejected before execution, HTTP 400
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "import os\nos.system(\"ls\")"}'
+
+
+# ------------------------------------------------------------
+# 5. Blocked import (subprocess) — HTTP 400
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "import subprocess\nsubprocess.run([\"whoami\"])"}'
+
+
+# ------------------------------------------------------------
+# 6. Blocked builtin (eval) — HTTP 400
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "eval(\"__import__('"'"'os'"'"').getcwd()\")"}'
+
+
+# ------------------------------------------------------------
+# 7. Blocked builtin (exec) — HTTP 400
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "exec(\"import os\")"}'
+
+
+# ------------------------------------------------------------
+# 8. Empty code — HTTP 422 (pydantic validation)
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "   "}'
+
+
+# ------------------------------------------------------------
+# 9. Task not found — HTTP 404
+# ------------------------------------------------------------
+
+curl -s http://localhost:8080/tasks/does-not-exist
+curl -N http://localhost:8080/tasks/does-not-exist/stream
+
+
+# ------------------------------------------------------------
+# 10. Stderr captured — error output included in task output
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "import sys\nsys.stderr.write(\"error line\\n\")\nprint(\"stdout line\")"}'
+
+# Note: sys is blocked, so HTTP 400. Demonstrates AST catching stderr bypass attempt.
+# With an unblocked stderr write: raise ValueError("boom") works fine — shown below.
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "raise ValueError(\"intentional error\")"}'
+
+curl -s http://localhost:8080/tasks/<task_id>
+
+
+# ------------------------------------------------------------
+# 11. Non-zero exit code — status=failed, exit_code=2
+# ------------------------------------------------------------
+
+curl -s -X POST http://localhost:8080/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "exit(2)"}'
+
+curl -s http://localhost:8080/tasks/<task_id>
